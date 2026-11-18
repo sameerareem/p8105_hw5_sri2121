@@ -24,3 +24,43 @@ options(
 scale_colour_discrete = scale_colour_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
+
+```{r}
+source("source/birthday_repeated.R")
+set.seed(1234)
+```
+
+
+## Question 1
+
+```{r}
+birthdays = sample(1:365, size = 5, replace = TRUE)
+
+repeated_birthdays = length(unique(birthdays)) < 5
+
+repeated_birthdays
+```
+
+```{r}
+birthday_repeated(147)
+```
+
+```{r}
+birthday_results_df =
+  expand_grid(
+    number_of_people = 5:50,
+    iter = 1:10000
+  ) |> 
+  mutate(
+    repeated = map_lgl(number_of_people, birthday_repeated)
+  )
+```
+
+```{r}
+birthday_results_df |> 
+  group_by(number_of_people) |> 
+  summarize(prob_of_repeat = mean(repeated)) |> 
+  ggplot(aes(x = number_of_people, y = prob_of_repeat)) + 
+  geom_point() + 
+  geom_line()
+```
