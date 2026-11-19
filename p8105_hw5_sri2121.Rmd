@@ -64,3 +64,84 @@ birthday_results_df |>
   geom_point() + 
   geom_line()
 ```
+
+## Question 2
+
+Dataframe and reading each file
+
+```{r, message = FALSE}
+df =
+  tibble(
+    file_name = list.files("data/")
+  ) |> 
+  mutate(
+    file_path = str_c("data/", file_name),
+    data = map(file_path, read_csv)
+  ) |> 
+  unnest(data)
+```
+
+Tidying data
+
+```{r, message = FALSE}
+tidy_df =
+  df |> 
+  mutate(file_name = str_remove(file_name, ".csv")) |> 
+  separate(file_name, into = c("arm", "subject_id"), sep = "_") |> 
+  mutate(
+    arm = case_match(
+      arm,
+      "con" ~ "control",
+      "exp" ~ "experimental"
+    ),
+    arm = factor(arm),
+    unique_id = str_c(arm, "_", subject_id)
+  ) |> 
+  select(-file_path) |> 
+  pivot_longer(
+    week_1:week_8,
+    names_to = "week",
+    names_prefix = "week_",
+    values_to = "observation"
+  ) |> 
+  mutate(week = as.numeric(week))
+
+tidy_df
+```
+
+Spaghetti plot
+
+```{r}
+tidy_df |> 
+  ggplot(aes(x = week, y = observation, group = unique_id, color = arm)) +
+  geom_line(alpha = 0.7) +
+  labs(
+    title = "Observations over time by subject and study arm",
+    x = "Week",
+    y = "Observation",
+    color = "Arm"
+  ) +
+  theme_minimal()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
